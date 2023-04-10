@@ -10,31 +10,48 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [photos, setPhotos] = useState([])
   const [page, setPage] = useState(1)
-  const handleSubmit = (e) => {
-    e.preventDefault()
-  }
+  const [query, setQuery] = useState("")
   const fetchImages = async () => {
     setIsLoading(true)
     const urlPage = `&page=${page}`
-    let url = `${mainUrl}${clientID}${urlPage}`
+    const urlQuery = `&query=${query}`
+    let url
+    if (query) {
+      url = `${searchUrl}${clientID}${urlPage}${urlQuery}`
+    } else {
+      url = `${mainUrl}${clientID}${urlPage}`
+    }
     try {
       const { data } = await axios(url)
-      setPhotos((oldPhotos) => [...oldPhotos, ...data])
+      if (query && page === 1) {
+        setPhotos(data.results)
+      } else if (query) {
+        setPhotos((oldPhotos) => [...oldPhotos, ...data.results])
+      } else if (!query && page === 1) {
+        setPhotos(data)
+      } else {
+        setPhotos((oldPhotos) => [...oldPhotos, ...data])
+      }
       setIsLoading(false)
     } catch (error) {
       console.log(error)
       setIsLoading(false)
     }
   }
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    fetchImages()
+  }
+
   useEffect(() => {
     fetchImages()
   }, [page])
   useEffect(() => {
     const event = window.addEventListener("scroll", () => {
-      if (
-        !isLoading &&
-        window.innerHeight + window.scrollY >= document.body.scrollHeight - 5
-      ) {
+      const scrolled = window.scrollY
+      const scrollable =
+        document.documentElement.scrollHeight - window.innerHeight
+      if (!isLoading && scrolled >= scrollable - 2) {
         setPage((oldPage) => oldPage + 1)
       }
     })
@@ -46,7 +63,13 @@ function App() {
     <main>
       <section className='search'>
         <form className='search-form'>
-          <input type='text' placeholder='search...' className='form-input' />
+          <input
+            type='text'
+            placeholder='search...'
+            className='form-input'
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
           <button type='submit' className='submit-btn' onClick={handleSubmit}>
             <FaSearch />
           </button>
