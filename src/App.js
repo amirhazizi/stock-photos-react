@@ -7,9 +7,9 @@ const mainUrl = `https://api.unsplash.com/photos/`
 const searchUrl = `https://api.unsplash.com/search/photos/`
 
 function App() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [photos, setPhotos] = useState([])
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(0)
   const [query, setQuery] = useState("")
   const fetchImages = async () => {
     setIsLoading(true)
@@ -40,24 +40,26 @@ function App() {
   }
   const handleSubmit = (e) => {
     e.preventDefault()
-    fetchImages()
+    setPage(1)
   }
 
   useEffect(() => {
     fetchImages()
+    // eslint-disable-next-line
   }, [page])
   useEffect(() => {
     const event = window.addEventListener("scroll", () => {
       const scrolled = window.scrollY
       const scrollable =
         document.documentElement.scrollHeight - window.innerHeight
-      if (!isLoading && scrolled >= scrollable - 2) {
+      if (isLoading && scrolled >= scrollable - 2) {
         setPage((oldPage) => oldPage + 1)
       }
     })
     return () => {
       window.removeEventListener("scroll", event)
     }
+    // eslint-disable-next-line
   }, [])
   return (
     <main>
